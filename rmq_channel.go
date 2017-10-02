@@ -2,7 +2,7 @@ package rmq
 
 import (
 	"github.com/streadway/amqp"
-	"github.com/labstack/gommon/log"
+	"log"
 )
 
 // Channel contains an active connection to RabbitMQ and a reference to AMQP Channel object
@@ -17,7 +17,7 @@ func NewChannel() (*Channel, error) {
 	config := newRabbitConfig()
 	addr := config.getAddress()
 
-	log.Infof("RabbitMQ: Connecting to %s:%s...\n", config.Host, config.Port)
+	log.Printf("RabbitMQ: Connecting to %s:%s...\n", config.Host, config.Port)
 	conn, err := amqp.Dial(addr)
 	if err != nil {
 		return nil, err
