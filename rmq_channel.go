@@ -22,6 +22,7 @@ func NewChannel() (*Channel, error) {
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("RabbitMQ: Connected")
 
 	// create a channel
 	ch, err := conn.Channel()
