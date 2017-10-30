@@ -3,6 +3,7 @@ package rmq
 import (
 	"github.com/streadway/amqp"
 	"encoding/json"
+	"log"
 )
 
 // Queue object with settings and message chan
@@ -19,20 +20,16 @@ type Queue struct {
 	PrefetchSize  int
 	Global        bool
 	Messages      <-chan amqp.Delivery
+	AutoReconnect bool
+	autoAck       bool
+	consume       bool
 }
 
 // Queue object constructor
-func NewQueue(name string, durable bool, prefetchCount int, autoAck, consume bool) (*Queue, error) {
-
-	// create a channel (and connection)
-	ch, err := NewChannel()
-
-	if err != nil {
-		return nil, err
-	}
+func NewQueue(name string, durable bool, prefetchCount int, autoAck, consume bool, autoReconnect bool) (*Queue, error) {
 
 	queue := &Queue{
-		ch,
+		nil,
 		nil,
 		name,
 		durable,
@@ -44,36 +41,54 @@ func NewQueue(name string, durable bool, prefetchCount int, autoAck, consume boo
 		0,
 		false,
 		nil,
+		autoReconnect,
+		autoAck,
+		consume,
 	}
 
-	// declare queue
-	q, err := ch.AmqpChannel.QueueDeclare(name,
-		queue.Durable,
-		queue.AutoDelete,
-		queue.Exclusive,
-		queue.NoWait,
-		queue.Arguments)
+	return queue, queue.Connect()
 
-	queue.AmqpQueue = &q
+}
+
+func (q *Queue) Connect() error {
+
+	// create a channel (and connection)
+	ch, err := NewChannel()
+
+	if err != nil {
+		return err
+	}
+
+	q.Channel = ch
+
+	// declare queue
+	qrez, err := q.Channel.AmqpChannel.QueueDeclare(q.QueueName,
+		q.Durable,
+		q.AutoDelete,
+		q.Exclusive,
+		q.NoWait,
+		q.Arguments)
+
+	q.AmqpQueue = &qrez
 
 	if err != nil {
 		ch.Close()
-		return nil, err
+		return err
 	}
 
-	if consume {
+	if q.consume {
 		// setup consumer settings
 
-		err = ch.AmqpChannel.Qos(queue.PrefetchCount, queue.PrefetchSize, queue.Global)
+		err = ch.AmqpChannel.Qos(q.PrefetchCount, q.PrefetchSize, q.Global)
 		if err != nil {
 			ch.Close()
-			return nil, err
+			return err
 		}
 
 		// bind queue to a chan
-		messages, err := ch.AmqpChannel.Consume(name,
+		messages, err := ch.AmqpChannel.Consume(q.QueueName,
 			"",
-			autoAck,
+			q.autoAck,
 			false,
 			false,
 			false,
@@ -81,25 +96,52 @@ func NewQueue(name string, durable bool, prefetchCount int, autoAck, consume boo
 
 		if err != nil {
 			ch.Close()
-			return nil, err
+			return err
 		}
 
-		queue.Messages = messages
+		q.Messages = messages
 	}
 
-	return queue, nil
+	return nil
+}
 
+func (q *Queue) Reconnect() error {
+	if q.Channel != nil {
+		q.Channel.Close()
+	}
+
+	return q.Connect()
 }
 
 // Publish an amqp.Publishing structure
 func (q *Queue) Publish(exchange, key string, mandatory, immediate bool, msg amqp.Publishing) error {
-	return q.Channel.AmqpChannel.Publish(
-		exchange,
-		key,
-		mandatory,
-		immediate,
-		msg,
-	)
+
+	for {
+		err1 := q.Channel.AmqpChannel.Publish(
+			exchange,
+			key,
+			mandatory,
+			immediate,
+			msg,
+		)
+
+		if err1 != nil {
+			if amqpErr, ok := err1.(*amqp.Error); ok {
+				if amqpErr.Code == amqp.ChannelError {
+					log.Println("Lost connection to queue manager.")
+					if q.AutoReconnect {
+						q.Reconnect()
+						continue
+					}
+				}
+			}
+			return err1
+		}
+
+		break
+	}
+
+	return nil
 }
 
 // Publish an arbitrary structure by JSON serializing
@@ -130,7 +172,7 @@ func (q *Queue) Send(data interface{}) error {
 // msg, err := queue.Get(&something)
 // msg.Ack(false)
 func (q *Queue) Get(v interface{}) (*amqp.Delivery, error) {
-	msg := <- q.Messages
+	msg := <-q.Messages
 	err := json.Unmarshal(msg.Body, v)
 	return &msg, err
 }
