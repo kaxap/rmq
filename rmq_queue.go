@@ -4,6 +4,7 @@ import (
 	"github.com/streadway/amqp"
 	"encoding/json"
 	"log"
+	"bytes"
 )
 
 // Queue object with settings and message chan
@@ -172,9 +173,19 @@ func (q *Queue) Send(data interface{}) error {
 // msg, err := queue.Get(&something)
 // msg.Ack(false)
 func (q *Queue) Get(v interface{}) (*amqp.Delivery, error) {
-	msg := <-q.Messages
-	err := json.Unmarshal(msg.Body, v)
-	return &msg, err
+	msg := <- q.Messages
+
+	if v != nil {
+		d := json.NewDecoder(bytes.NewReader(msg.Body))
+		d.UseNumber()
+		err := d.Decode(v)
+
+		if err != nil {
+			log.Printf("Could not decode JSON: %s\n", err.Error())
+		}
+		return &msg, err
+	}
+	return &msg, nil
 }
 
 // Close associated channel
