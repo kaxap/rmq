@@ -51,6 +51,33 @@ func NewQueue(name string, durable bool, prefetchCount int, autoAck, consume boo
 
 }
 
+// Queue object constructor, including queue arguments, such as map[string]interface{}{"x-queue-mode": "lazy"}
+func NewQueueWithArgs(name string, durable bool, prefetchCount int, autoAck, consume bool, autoReconnect bool,
+	args amqp.Table) (*Queue, error) {
+
+	queue := &Queue{
+		nil,
+		nil,
+		name,
+		durable,
+		false,
+		false,
+		false,
+		args,
+		prefetchCount,
+		0,
+		false,
+		nil,
+		autoReconnect,
+		autoAck,
+		consume,
+	}
+
+	return queue, queue.Connect()
+
+}
+
+
 func (q *Queue) Connect() error {
 
 	// create a channel (and connection)
