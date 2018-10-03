@@ -23,7 +23,7 @@ func main() {
 	// connection parameters should be present as environment variables
 	// i.e. RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS, RABBITMQ_HOST, RABBITMQ_PORT
 	// for more information see https://hub.docker.com/_/rabbitmq/
-	queue, err := rmq.NewQueue("test_queue", false, 1, false, true)
+	queue, err := rmq.NewQueue("test_queue", false, 1, false, true, true)
 	if err != nil {
 		// could not connect or create channel
 		log.Fatal(err)
