@@ -1,10 +1,10 @@
 package rmq
 
 import (
-	"github.com/streadway/amqp"
-	"encoding/json"
-	"log"
 	"bytes"
+	"encoding/json"
+	"github.com/streadway/amqp"
+	"log"
 )
 
 // Queue object with settings and message chan
@@ -77,6 +77,27 @@ func NewQueueWithArgs(name string, durable bool, prefetchCount int, autoAck, con
 
 }
 
+// short syntax for NewQueue(name, durable=true, prefetchCount=0, autoAck=false, consume=false, autoReconnect=true)
+func NewProducerQueue(name string) (*Queue, error) {
+	return NewQueue(name, true, 0, false, false, true)
+}
+
+// short syntax for NewQueue(name, durable=true, prefetchCount=prefetchCount, autoAck=false, consume=true, autoReconnect=true)
+func NewConsumerQueue(name string, prefetchCount int) (*Queue, error) {
+	return NewQueue(name, true, prefetchCount, false, true, true)
+}
+
+// short syntax for producer queue with x-queue-mode: lazy args
+func NewLazyProducerQueue(name string) (*Queue, error) {
+	return NewQueueWithArgs(name, true, 0, false, false, true,
+		map[string]interface{}{"x-queue-mode": "lazy"})
+}
+
+// short syntax for consumer queue with x-queue-mode: lazy args
+func NewLazyConsumerQueue(name string, prefetchCount int) (*Queue, error) {
+	return NewQueueWithArgs(name, true, prefetchCount, false, true, true,
+		map[string]interface{}{"x-queue-mode": "lazy"})
+}
 
 func (q *Queue) Connect() error {
 
@@ -200,7 +221,7 @@ func (q *Queue) Send(data interface{}) error {
 // msg, err := queue.Get(&something)
 // msg.Ack(false)
 func (q *Queue) Get(v interface{}) (*amqp.Delivery, error) {
-	msg := <- q.Messages
+	msg := <-q.Messages
 
 	if v != nil {
 		d := json.NewDecoder(bytes.NewReader(msg.Body))
