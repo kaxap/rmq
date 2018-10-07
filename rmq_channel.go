@@ -2,7 +2,6 @@ package rmq
 
 import (
 	"github.com/streadway/amqp"
-	"log"
 )
 
 // Channel contains an active connection to RabbitMQ and a reference to AMQP Channel object
@@ -17,12 +16,10 @@ func NewChannel() (*Channel, error) {
 	config := newRabbitConfig()
 	addr := config.getAddress()
 
-	log.Printf("RabbitMQ: Connecting to %s:%s...\n", config.Host, config.Port)
 	conn, err := amqp.Dial(addr)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("RabbitMQ: Connected")
 
 	// create a channel
 	ch, err := conn.Channel()
