@@ -62,6 +62,35 @@ func main() {
 
 Now publish `{"id": 1, "data": "hello"}` to the "test_queue" and see what happens.
 
+
+# Even shorter syntax if you don't need to send messages very often
+
+```golang
+package main
+
+import (
+	"github.com/kaxap/rmq"
+	"log"
+)
+
+type something struct {
+	ID   int    `json:"id"`
+	Data string `json:"data"`
+}
+
+func main() {
+
+    const maxRetry := 10
+    rmq.SendAndForget("some_queue_where_I_want_to_dump_something", &something{ID: 1, Data: "hello!"}, maxRetry)
+    // this will try to connect to a durable queue with the given name and send the data in "something" struct
+    // if connection or sending failed it will retry up to 10 times. Then it will close the connection
+
+```
+
+Note if you need to send messages to non durable queues, please use `rmq.SendAndForgetNonDurable`. There is also
+`SendAndForgetLazy` available for lazy queues.
+
+
 # Constructors
 
 There is 6 types of queue constructors:
