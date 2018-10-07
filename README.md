@@ -24,8 +24,8 @@ func main() {
 	// i.e. RABBITMQ_DEFAULT_USER, RABBITMQ_DEFAULT_PASS, RABBITMQ_HOST, RABBITMQ_PORT
 	// for more information see https://hub.docker.com/_/rabbitmq/
 
-	// this is short syntax for durable consumer queue,
-	// if you need to create non-durable queue, please use NewQueue constructor
+	// this is short syntax for a durable consumer queue,
+	// if you need to create a non-durable queue, please use NewQueue constructor (see "Constructors" chapter below)
 	inputQueue, err := rmq.NewConsumerQueue("input_queue", 1)
 	if err != nil {
 		// could not connect or create channel
@@ -33,7 +33,7 @@ func main() {
 	}
 	defer inputQueue.Close()
 
-	// this is short syntax for durable producer queue
+	// this is short syntax for a durable producer queue
 	outputQueue, err := rmq.NewProducerQueue("output_queue", 1)
 	if err != nil {
 		// could not connect or create channel
