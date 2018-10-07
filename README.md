@@ -109,5 +109,5 @@ NewLazyConsumerQueue(name string, prefetchCount int) (*Queue, error)
 // short syntax for consumer queue with x-queue-mode: lazy args
 ```
 
-Note that lazy queues is often used when a queue is expected to be frequently flooded. In lazy mode RabbitMQ flushes the messages on disk when possible.
+Note that lazy queues are often used when a queue is expected to be frequently flooded. In lazy mode RabbitMQ pages out the messages on disk when possible.
 For more information see https://www.rabbitmq.com/lazy-queues.html
