@@ -60,7 +60,7 @@ func main() {
 
 ```
 
-Now publish `{"id": 1, "data": "hello"}` to the "test_queue" and see what happens.
+Now publish `{"id": 1, "data": "hello"}` to the "input_queue" and see what happens.
 
 
 # Even shorter syntax if you don't need to send messages very often
