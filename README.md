@@ -83,7 +83,7 @@ func main() {
     const maxRetry := 10
     rmq.SendAndForget("some_queue_where_I_want_to_dump_something", &something{ID: 1, Data: "hello!"}, maxRetry)
     // this will try to connect to a durable queue with the given name and send the data in "something" struct
-    // if connection or sending failed it will retry up to 10 times. Then it will close the connection
+    // if the connection or sending has failed it will retry up to 10 times. Then it will close the connection
 
 ```
 
