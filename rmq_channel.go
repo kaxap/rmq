@@ -28,7 +28,7 @@ func NewChannel() (*Channel, error) {
 		return nil, err
 	}
 
-	return &Channel{Conn:conn, AmqpChannel:ch}, nil
+	return &Channel{Conn: conn, AmqpChannel: ch}, nil
 }
 
 // Close channel and connection to RabbitMQ
