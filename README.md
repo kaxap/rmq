@@ -9,6 +9,7 @@ package main
 
 import (
 	"github.com/kaxap/rmq"
+	"github.com/streadway/amqp"
 	"log"
 )
 
