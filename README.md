@@ -41,6 +41,9 @@ func main() {
 	}
 	defer outputQueue.Close()
 
+	// change delivery mode for Send and PublishJSON methods
+	outputQueue.DeliveryMode = amqp.Persistent
+
 	var a something
 
 	// consume a json encoded message

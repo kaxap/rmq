@@ -24,6 +24,7 @@ type Queue struct {
 	AutoReconnect bool
 	autoAck       bool
 	consume       bool
+	DeliveryMode  uint8
 }
 
 // Queue object constructor
@@ -45,6 +46,7 @@ func NewQueue(name string, durable bool, prefetchCount int, autoAck, consume boo
 		autoReconnect,
 		autoAck,
 		consume,
+		amqp.Transient,
 	}
 
 	return queue, queue.Connect()
@@ -71,6 +73,7 @@ func NewQueueWithArgs(name string, durable bool, prefetchCount int, autoAck, con
 		autoReconnect,
 		autoAck,
 		consume,
+		amqp.Transient,
 	}
 
 	return queue, queue.Connect()
@@ -206,8 +209,9 @@ func (q *Queue) PublishJSON(exchange, key string, mandatory, immediate bool, dat
 		mandatory,
 		immediate,
 		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        []byte(body),
+			ContentType:  "application/json",
+			Body:         []byte(body),
+			DeliveryMode: q.DeliveryMode,
 		})
 }
 
