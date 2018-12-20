@@ -35,7 +35,7 @@ func main() {
 	defer inputQueue.Close()
 
 	// this is short syntax for a durable producer queue
-	outputQueue, err := rmq.NewProducerQueue("output_queue", 1)
+	outputQueue, err := rmq.NewProducerQueue("output_queue")
 	if err != nil {
 		// could not connect or create channel
 		log.Fatal(err)
